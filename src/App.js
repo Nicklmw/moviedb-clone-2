@@ -42,10 +42,6 @@ function App() {
           }
         />
       </Routes>
-      <Trailer />
-      <FreeWatch />
-      <Join />
-      <Footer />
     </>
   );
 }
