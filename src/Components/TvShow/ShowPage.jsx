@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Skeleton } from "@mui/material";
+import { Alert, Skeleton } from "@mui/material";
 import styles from "../Styles/ShowPage.module.css";
 import { PiTelevisionSimpleDuotone } from "react-icons/pi";
 import { BiCalendar, BiSolidStar } from "react-icons/bi";
@@ -20,6 +20,7 @@ export default function ShowPage() {
   const [config, setConfig] = useState({});
   const [trailers, setTrailers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [alertUser, setAlertUser] = useState(false);
 
   const { id } = useParams();
 
@@ -79,7 +80,7 @@ export default function ShowPage() {
 
   const handleSaveToWatchlist = async () => {
     if (!user) {
-      alert("Login to add to watchlist");
+      setAlertUser(true);
       return;
     }
 
@@ -100,6 +101,20 @@ export default function ShowPage() {
     const isSetToWatchlist = await checkIfInWatchlist(user.uid, dataId);
     setIsInWatchlist(isSetToWatchlist);
   };
+
+  useEffect(() => {
+    let alertTimer;
+
+    if (alertUser) {
+      alertTimer = setTimeout(function () {
+        setAlertUser(false);
+      }, 3000);
+    }
+
+    return () => {
+      clearTimeout(alertTimer);
+    };
+  }, [alertUser]);
 
   useEffect(() => {
     if (!user) {
@@ -200,7 +215,7 @@ export default function ShowPage() {
             />
           </div>
           <div className={styles.right}>
-            <div>
+            <div className={styles.titleSection}>
               <h2 className={styles.name}>
                 {data.name}{" "}
                 <span style={{ color: "#bababa", fontSize: "0.9em" }}>
@@ -228,29 +243,28 @@ export default function ShowPage() {
                     ? data.number_of_episodes + " Episodes"
                     : data.number_of_episodes + " Episode"}
                 </li>
+                <li>
+                  <BiSolidStar
+                    style={{ color: "yellow", verticalAlign: "-12%" }}
+                  />{" "}
+                  {Math.round(data.vote_average * 10) / 10}
+                </li>
               </ul>
 
-              <hr style={{ width: "300px" }} />
+              <hr />
             </div>
 
-            <div style={{ display: "flex", gap: "10px" }}>
-              {data.tagline ? (
-                <p className={styles.tagline}>{data.tagline}</p>
-              ) : null}
-              <p>
-                <BiSolidStar
-                  style={{ color: "yellow", verticalAlign: "-12%" }}
-                />{" "}
-                {Math.round(data.vote_average * 10) / 10}
-              </p>
-            </div>
+            {data.tagline ? (
+              <p className={styles.tagline}>{data.tagline}</p>
+            ) : null}
 
-            <div>
+            <div className={styles.overviewContainer}>
               <h3>Overview</h3>
               <p className={styles.overview}>{data.overview}</p>
             </div>
 
             <div
+              className={styles.buttons}
               style={{
                 display: "flex",
                 width: "fit-content",
@@ -287,6 +301,19 @@ export default function ShowPage() {
             </div>
 
             <div>{alertComponent}</div>
+
+            {alertUser ? (
+              <Alert
+                severity="error"
+                style={{
+                  position: "absolute",
+                  bottom: "10px",
+                }}
+                variant="filled"
+              >
+                Login to add to watchlist
+              </Alert>
+            ) : null}
 
             <ul className={styles.genre}>
               {data.genres &&
