@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Skeleton } from "@mui/material";
+import { Alert, Skeleton } from "@mui/material";
 import styles from "../Styles/MoviePage.module.css";
 import { BiCalendar, BiSolidStar, BiTimeFive } from "react-icons/bi";
 import PlayMovieTrailer from "./PlayMovieTrailer";
@@ -18,6 +18,8 @@ export default function MoviePage() {
   const [config, setConfig] = useState({});
   const [loading, setLoading] = useState(false);
   const [trailers, setTrailers] = useState([]);
+  const [alertUser, setAlertUser] = useState(false);
+
   const { id } = useParams();
 
   const { user } = useAuth();
@@ -66,7 +68,6 @@ export default function MoviePage() {
 
       let youtubeVids = Object.values(result.videos.results);
       setTrailers(youtubeVids);
-      // console.log(result);
     } catch (error) {
       console.log("Get movie error", error);
     } finally {
@@ -76,7 +77,7 @@ export default function MoviePage() {
 
   const handleSaveToWatchlist = async () => {
     if (!user) {
-      alert("Login to add to watchlist");
+      setAlertUser(true);
       return;
     }
 
@@ -97,6 +98,20 @@ export default function MoviePage() {
     const isSetToWatchlist = await checkIfInWatchlist(user.uid, dataId);
     setIsInWatchlist(isSetToWatchlist);
   };
+
+  useEffect(() => {
+    let alertTimer;
+
+    if (alertUser) {
+      alertTimer = setTimeout(function () {
+        setAlertUser(false);
+      }, 3000);
+    }
+
+    return () => {
+      clearTimeout(alertTimer);
+    };
+  }, [alertUser]);
 
   useEffect(() => {
     if (!user) {
@@ -181,7 +196,7 @@ export default function MoviePage() {
       <div
         className={styles.backdrop}
         style={{
-          background: `linear-gradient(rgba(0,0,0,.5) , rgba(0,0,0,.5)) , url(${config.baseURL}${config.backdropSize}${data.backdrop_path})`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,.5) , rgba(0,0,0,.5)) , url(${config.baseURL}${config.backdropSize}${data.backdrop_path})`,
         }}
       >
         <div className={styles.wrapper} key={data.id}>
@@ -226,35 +241,27 @@ export default function MoviePage() {
                       ) : null;
                     } else return null;
                   })}
+                <li>
+                  <BiSolidStar
+                    style={{ color: "yellow", verticalAlign: "-12%" }}
+                  />{" "}
+                  {Math.round(data.vote_average * 10) / 10}
+                </li>
               </ul>
 
-              <hr style={{ width: "300px" }} />
+              <hr />
             </div>
 
-            <div style={{ display: "flex", gap: "10px" }}>
-              {data.tagline ? (
-                <p className={styles.tagline}>{data.tagline}</p>
-              ) : null}
-              <p>
-                <BiSolidStar
-                  style={{ color: "yellow", verticalAlign: "-12%" }}
-                />{" "}
-                {Math.round(data.vote_average * 10) / 10}
-              </p>
-            </div>
+            {data.tagline ? (
+              <p className={styles.tagline}>{data.tagline}</p>
+            ) : null}
 
-            <div>
+            <div className={styles.overviewContainer}>
               <h3>Overview</h3>
               <p className={styles.overview}>{data.overview}</p>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                width: "fit-content",
-                gap: "20px",
-              }}
-            >
+            <div className={styles.buttons}>
               <PlayMovieTrailer data={data} trailers={trailers} />
 
               {isInWatchlist ? (
@@ -285,6 +292,19 @@ export default function MoviePage() {
             </div>
 
             <div>{alertComponent}</div>
+
+            {alertUser ? (
+              <Alert
+                severity="error"
+                style={{
+                  position: "absolute",
+                  bottom: "10px",
+                }}
+                variant="filled"
+              >
+                Login to add to watchlist
+              </Alert>
+            ) : null}
 
             <ul className={styles.genre}>
               {data.genres &&

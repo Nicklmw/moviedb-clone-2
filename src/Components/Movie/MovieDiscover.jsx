@@ -47,6 +47,7 @@ export default function MovieDiscover() {
         );
         const result = await res.json();
         setData(result);
+        // console.log(result);
         setShowSpinner(false);
       } else if (page >= 2) {
         const res = await fetch(
@@ -83,7 +84,7 @@ export default function MovieDiscover() {
 
   return (
     <>
-      <h2 style={{ textAlign: "center", margin: "10px 0" }}>Popular Movies</h2>
+      <h2 className={styles.header}>Popular Movies</h2>
 
       <div className={styles.container}>
         {loading && !data.results ? (
@@ -140,19 +141,34 @@ export default function MovieDiscover() {
                 {showSpinner ? (
                   <Loading />
                 ) : (
-                  <Button
-                    variant="contained"
-                    onClick={handleClickMore}
-                    className={styles.loadMore}
-                  >
-                    Load More
-                  </Button>
+                  <>
+                    <Button
+                      variant="contained"
+                      onClick={handleClickMore}
+                      className={styles.loadMore}
+                    >
+                      Load More
+                    </Button>
+                  </>
                 )}
               </>
             )}
           </>
         )}
       </div>
+      {data && (
+        <p
+          style={{
+            padding: "5px",
+            width: "fit-content",
+            height: "fit-content",
+            textAlign: "center",
+            margin: "10px auto 20px",
+          }}
+        >
+          Page {page} of {data.total_pages}
+        </p>
+      )}
       <ScrollButton />
     </>
   );
